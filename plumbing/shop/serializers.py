@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Product
+from .models import Product, Review
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -11,9 +11,26 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = ("name", "price", "category")
 
 
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    """Добавление отзыва"""
+
+    class Meta:
+        model = Review
+        fields = "__all__"
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Вывод отзыва"""
+
+    class Meta:
+        model = Review
+        fields = ("name", "text", "parent")
+
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     """Карточка товара"""
     category = serializers.SlugRelatedField(slug_field="name", read_only=True)  # Вывод имени категории вместо id
+    reviews = ReviewSerializer(many=True)  # Вывод отзывов
 
     class Meta:
         model = Product
