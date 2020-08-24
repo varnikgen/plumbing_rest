@@ -1,14 +1,21 @@
+from django.db import models
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import generics
 
 from .models import Product
 from .serializers import ProductListSerializer, ProductDetailSerializer, ReviewCreateSerializer, CreateRatingSerializer
+from .service import get_client_ip
 
 
 class ProductListView(APIView):
     """Вывод списка товаров"""
     def get(self, request):
-        products = Product.objects.filter(available=True)
+        products = Product.objects.filter(available=True).annotate(
+            rating_user=models.Count("ratings", filter=models.Q(ratings__ip=get_client_ip(request))),
+        ).annotate(
+            middle_star=models.Sum(models.F('ratings__star')) / models.Count(models.F('ratings'))
+        )
         serializer = ProductListSerializer(products, many=True)
         return Response(serializer.data)
 
@@ -33,18 +40,10 @@ class ReviewCreateView(APIView):
 class AddStartRatingView(APIView):
     """Добавление рейтинга товару"""
 
-    def get_client_ip(self, request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
-
     def post(self, request):
         serializer = CreateRatingSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(ip=self.get_client_ip(request))
+            serializer.save(ip=get_client_ip(request))
             return Response(status=201)
         else:
             return Response(status=400)

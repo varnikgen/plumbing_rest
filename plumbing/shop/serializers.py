@@ -5,10 +5,12 @@ from .models import Product, Review, Rating
 
 class ProductListSerializer(serializers.ModelSerializer):
     """Список товаров"""
+    rating_user = serializers.BooleanField()
+    middle_star = serializers.IntegerField()
 
     class Meta:
         model = Product
-        fields = ("name", "price", "category")
+        fields = ("id", "name", "price", "category", "rating_user", "middle_star")
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
