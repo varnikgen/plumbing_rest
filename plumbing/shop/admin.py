@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import Category, Product, ProductShots, Review
+from .models import Category, Product, ProductShots, Review, Rating, RatingStar
 
 
 @admin.register(Category)
@@ -109,5 +109,13 @@ class ProductShotsAdmin(admin.ModelAdmin):
 
     get_image.short_description = "Изображение"
 
-    admin.site.site_title = "Django магазин Сантехника"
-    admin.site.site_header = "Django магазин Сантехника"
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    """Рейтинг"""
+    list_display = ("star", "product", "ip")
+
+
+admin.site.register(RatingStar)
+admin.site.site_title = "Django магазин Сантехника"
+admin.site.site_header = "Django магазин Сантехника"

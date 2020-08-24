@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Product, Review
+from .models import Product, Review, Rating
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -35,3 +35,18 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         exclude = ("available",)
+
+
+class CreateRatingSerializer(serializers.ModelSerializer):
+    """Добавление рейтинга пользователем"""
+    class Meta:
+        model = Rating
+        fields = ("star", "product")
+
+    def create(self, validated_data):
+        rating = Rating.objects.update_or_create(
+            ip=validated_data.get('ip', None),
+            product=validated_data.get('product', None),
+            defaults={'star': validated_data.get("star")}
+        )
+        return rating
