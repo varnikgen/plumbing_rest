@@ -1,6 +1,4 @@
 from django.db import models
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework import generics
 
 from .models import Product
@@ -8,42 +6,33 @@ from .serializers import ProductListSerializer, ProductDetailSerializer, ReviewC
 from .service import get_client_ip
 
 
-class ProductListView(APIView):
+class ProductListView(generics.ListAPIView):
     """Вывод списка товаров"""
-    def get(self, request):
+    serializer_class = ProductListSerializer
+
+    def get_queryset(self):
         products = Product.objects.filter(available=True).annotate(
-            rating_user=models.Count("ratings", filter=models.Q(ratings__ip=get_client_ip(request))),
+            rating_user=models.Count("ratings", filter=models.Q(ratings__ip=get_client_ip(self.request))),
         ).annotate(
             middle_star=models.Sum(models.F('ratings__star')) / models.Count(models.F('ratings'))
         )
-        serializer = ProductListSerializer(products, many=True)
-        return Response(serializer.data)
+        return products
 
 
-class ProductDetailView(APIView):
+class ProductDetailView(generics.RetrieveAPIView):
     """Вывод карточки товара"""
-    def get(self, request, pk):
-        product = Product.objects.get(id=pk, available=True)
-        serializer = ProductDetailSerializer(product)
-        return Response(serializer.data)
+    queryset = Product.objects.filter(available=True)
+    serializer_class = ProductDetailSerializer
 
 
-class ReviewCreateView(APIView):
+class ReviewCreateView(generics.CreateAPIView):
     """Добавление отзыва к товару"""
-    def post(self, request):
-        review = ReviewCreateSerializer(data=request.data)
-        if review.is_valid():
-            review.save()
-        return Response(status=201)
+    serializer_class = ReviewCreateSerializer
 
 
-class AddStartRatingView(APIView):
+class AddStartRatingView(generics.CreateAPIView):
     """Добавление рейтинга товару"""
+    serializer_class = CreateRatingSerializer
 
-    def post(self, request):
-        serializer = CreateRatingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(ip=get_client_ip(request))
-            return Response(status=201)
-        else:
-            return Response(status=400)
+    def perform_create(self, serializer):
+        serializer.save(ip=get_client_ip(self.request))
