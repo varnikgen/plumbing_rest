@@ -1,5 +1,5 @@
 from django.db import models
-from rest_framework import generics
+from rest_framework import generics, permissions
 
 from .models import Product, Category
 from .serializers import (
@@ -33,6 +33,7 @@ class CategoryProductsView(generics.ListAPIView):
 class ProductListView(generics.ListAPIView):
     """Вывод списка товаров"""
     serializer_class = ProductListSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         products = Product.objects.filter(available=True).annotate(
