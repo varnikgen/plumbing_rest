@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from .models import Product, Review, Rating
+from .models import Product, Review, Rating, Category
+
+
+class CategoryListSerializer(serializers.ModelSerializer):
+    """Список категорий"""
+
+    class Meta:
+        model = Category
+        fields = ("id", "name", "url")
 
 
 class ProductListSerializer(serializers.ModelSerializer):
