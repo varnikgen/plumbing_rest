@@ -33,7 +33,7 @@ class CategoryProductsView(generics.ListAPIView):
 class ProductListView(generics.ListAPIView):
     """Вывод списка товаров"""
     serializer_class = ProductListSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         products = Product.objects.filter(available=True).annotate(
